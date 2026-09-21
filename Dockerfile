@@ -27,6 +27,12 @@ COPY . .
 COPY ./docker/nginx.conf /etc/nginx/http.d/default.conf
 COPY ./docker/supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
+# Instala dependências do Composer e compila assets do Vite
+RUN composer install --no-dev --optimize-autoloader --no-interaction \
+    && npm install \
+    && npm run build \
+    && rm -rf node_modules
+
 # Define as permissões corretas para o Laravel
 RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
