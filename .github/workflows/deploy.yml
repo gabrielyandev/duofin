@@ -1,0 +1,34 @@
+name: Deploy DuoFin to Oracle Cloud
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout do repositório
+        uses: actions/checkout@v4
+
+      - name: Executar rotina de deploy via SSH
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          port: ${{ secrets.SSH_PORT }}
+          script: |
+            cd ~/apps/duofin
+            git pull origin main
+            docker compose up -d --build
+            docker exec duofin_app composer install --no-dev --optimize-autoloader
+            docker exec duofin_app npm install
+            docker exec duofin_app npm run build
+            docker exec duofin_app php artisan migrate --force
+            docker exec duofin_app php artisan optimize:clear
+            docker exec duofin_app php artisan config:cache
+            docker exec duofin_app php artisan route:cache
+            docker exec duofin_app php artisan view:cache
