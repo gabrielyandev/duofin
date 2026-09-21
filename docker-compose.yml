@@ -9,7 +9,7 @@ services:
       - .env
     volumes:
       - ./storage:/var/www/html/storage
-      - ./.env:/var/www/html/.env:ro
+      - ./.env:/var/www/html/.env
     networks:
       - web_network
 
