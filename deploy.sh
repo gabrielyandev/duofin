@@ -14,6 +14,7 @@ git pull origin main
 
 # 3. Recompilar a imagem Docker e reiniciar o container
 echo "🐳 Reconstruindo imagem Docker e reiniciando container..."
+docker compose down || true
 docker compose up -d --build
 
 # 4. Ajustar permissões da pasta storage e bootstrap/cache no container

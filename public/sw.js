@@ -1,4 +1,4 @@
-const CACHE_NAME = 'duofin-v1';
+const CACHE_NAME = 'duofin-v2';
 
 const PRECACHE_ASSETS = [
   '/offline.html',
@@ -56,8 +56,8 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          // If successful network response, clone and update cache
-          if (response && response.status === 200) {
+          // If successful network response and not a redirect, update cache
+          if (response && response.status === 200 && !response.redirected) {
             const responseClone = response.clone();
             caches.open(CACHE_NAME).then((cache) => cache.put(request, responseClone));
           }
