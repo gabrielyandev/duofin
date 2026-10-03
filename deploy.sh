@@ -14,8 +14,10 @@ git pull origin main
 
 # 3. Recompilar a imagem Docker e reiniciar o container
 echo "🐳 Reconstruindo imagem Docker e reiniciando container..."
-docker compose down || true
-docker compose up -d --build
+docker rm -f duofin_app 2>/dev/null || true
+docker compose down --remove-orphans || true
+docker rm -f duofin_app 2>/dev/null || true
+docker compose up -d --build --force-recreate
 
 # 4. Ajustar permissões da pasta storage e bootstrap/cache no container
 echo "🔐 Ajustando permissões..."
