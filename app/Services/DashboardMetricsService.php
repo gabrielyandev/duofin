@@ -193,6 +193,7 @@ class DashboardMetricsService
             'category_expenses' => $categoryExpenses,
             'spending_by_member' => $spendingByMember,
             'upcoming_bills' => $upcomingBills,
+            'month_transactions' => $monthTransactions->sortByDesc('due_date'),
             'members' => $members,
         ];
     }

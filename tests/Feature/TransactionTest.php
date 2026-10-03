@@ -298,4 +298,45 @@ class TransactionTest extends TestCase
             'installment_number' => 5,
         ]);
     }
+
+    /**
+     * 6. Atualização de transação / despesa existente.
+     */
+    public function test_user_can_update_transaction(): void
+    {
+        $this->actingAs($this->user);
+
+        $tx = Transaction::create([
+            'workspace_id' => $this->workspace->id,
+            'user_id' => $this->user->id,
+            'account_id' => $this->account->id,
+            'category_id' => $this->category->id,
+            'type' => 'expense',
+            'amount' => 150.00,
+            'due_date' => now()->toDateString(),
+            'status' => 'pending',
+            'description' => 'Mercado Antigo',
+            'payment_method' => 'pix',
+        ]);
+
+        $response = $this->put(route('transactions.update', $tx), [
+            'description' => 'Supermercado Editado',
+            'amount' => 185.50,
+            'due_date' => now()->addDays(2)->toDateString(),
+            'category_id' => $this->category->id,
+            'account_id' => $this->account->id,
+            'status' => 'paid',
+            'type' => 'expense',
+            'payment_method' => 'credit_card',
+        ]);
+
+        $response->assertRedirect();
+        $this->assertDatabaseHas('transactions', [
+            'id' => $tx->id,
+            'description' => 'Supermercado Editado',
+            'amount' => 185.50,
+            'status' => 'paid',
+            'payment_method' => 'credit_card',
+        ]);
+    }
 }

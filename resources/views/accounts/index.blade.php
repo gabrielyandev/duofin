@@ -1,5 +1,22 @@
 <x-app-layout>
-    <div x-data="{ createAccModalOpen: false, selectedColor: '#820ad1' }">
+    <div x-data="{ 
+        createAccModalOpen: false, 
+        selectedColor: '#820ad1',
+        editAccountModalOpen: false,
+        editAccountAction: '',
+        editAccountData: { id: null, name: '', initial_balance: '', color: '#10b981' },
+        openEditAccount(acc) {
+            window.haptic('light');
+            this.editAccountData = {
+                id: acc.id,
+                name: acc.name,
+                initial_balance: acc.initial_balance,
+                color: acc.color || '#10b981'
+            };
+            this.editAccountAction = '/accounts/' + acc.id;
+            this.editAccountModalOpen = true;
+        }
+    }">
         <!-- Header -->
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-zinc-200">
             <div>
@@ -7,7 +24,7 @@
                 <p class="text-sm text-zinc-500">Gerencie onde o dinheiro do casal está guardado e seus saldos calculados</p>
             </div>
             <button 
-                @click="createAccModalOpen = true"
+                @click="createAccModalOpen = true; window.haptic('light')"
                 class="inline-flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-zinc-900 hover:bg-zinc-800 text-white text-xs font-bold shadow-md shadow-zinc-900/10 transition self-start sm:self-auto"
             >
                 <x-lucide-plus class="w-4 h-4 text-emerald-400" />
@@ -34,13 +51,23 @@
                                 </div>
                             </div>
 
-                            <form method="POST" action="{{ route('accounts.destroy', $acc) }}" onsubmit="return confirm('Deseja excluir esta conta? Todas as transações associadas serão removidas.');">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="p-2 text-zinc-300 hover:text-rose-600 rounded-xl hover:bg-rose-50 transition" title="Excluir Conta">
-                                    <x-lucide-trash-2 class="w-4 h-4" />
+                            <div class="flex items-center gap-1">
+                                <button 
+                                    type="button" 
+                                    @click="openEditAccount({{ json_encode($acc) }})"
+                                    class="p-2 text-zinc-400 hover:text-zinc-700 rounded-xl hover:bg-zinc-100 transition" 
+                                    title="Editar Conta / Saldo"
+                                >
+                                    <x-lucide-pencil class="w-4 h-4" />
                                 </button>
-                            </form>
+                                <form method="POST" action="{{ route('accounts.destroy', $acc) }}" onsubmit="return confirm('Deseja excluir esta conta? Todas as transações associadas serão removidas.');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="p-2 text-zinc-300 hover:text-rose-600 rounded-xl hover:bg-rose-50 transition" title="Excluir Conta">
+                                        <x-lucide-trash-2 class="w-4 h-4" />
+                                    </button>
+                                </form>
+                            </div>
                         </div>
 
                         <div class="mt-8 pt-5 border-t border-zinc-100">
@@ -163,4 +190,8 @@
             </div>
         </div>
     </div>
+
+    <!-- Edit Modal -->
+    @include('accounts.edit-modal')
+</div>
 </x-app-layout>

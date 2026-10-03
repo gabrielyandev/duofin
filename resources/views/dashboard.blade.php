@@ -4,6 +4,53 @@
         $nextDate = \Carbon\Carbon::create($currentYear, $currentMonth, 1)->addMonth();
     @endphp
 
+    <div x-data="{
+        editAccountModalOpen: false,
+        editAccountAction: '',
+        editAccountData: { id: null, name: '', initial_balance: '', color: '#10b981' },
+        openEditAccount(acc) {
+            window.haptic('light');
+            this.editAccountData = {
+                id: acc.id,
+                name: acc.name,
+                initial_balance: acc.initial_balance,
+                color: acc.color || '#10b981'
+            };
+            this.editAccountAction = '/accounts/' + acc.id;
+            this.editAccountModalOpen = true;
+        },
+
+        editTxModalOpen: false,
+        editTxAction: '',
+        editTxData: {
+            id: null,
+            description: '',
+            amount: '',
+            due_date: '',
+            category_id: '',
+            account_id: '',
+            status: 'pending',
+            type: 'expense',
+            payment_method: 'pix'
+        },
+        openEditTx(tx) {
+            window.haptic('light');
+            this.editTxData = {
+                id: tx.id,
+                description: tx.description,
+                amount: parseFloat(tx.amount).toFixed(2),
+                due_date: (tx.due_date ? String(tx.due_date).substring(0, 10) : ''),
+                category_id: tx.category_id,
+                account_id: tx.account_id,
+                status: tx.status || 'pending',
+                type: tx.type || 'expense',
+                payment_method: tx.payment_method || 'pix'
+            };
+            this.editTxAction = '/transactions/' + tx.id;
+            this.editTxModalOpen = true;
+        }
+    }">
+
     <!-- Dashboard Header with Month Selector -->
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-6 border-b border-zinc-200">
         <div>
@@ -388,19 +435,30 @@
                                     <div class="text-base font-extrabold text-rose-600 mb-1.5">
                                         {{ $bill->formatted_amount }}
                                     </div>
-                                    <!-- 1-Click Mark as Paid -->
-                                    <form method="POST" action="{{ route('transactions.update-status', $bill) }}">
-                                        @csrf
-                                        @method('PATCH')
+                                    <div class="flex items-center justify-end gap-1.5">
+                                        <!-- Edit button -->
                                         <button 
-                                            type="submit" 
-                                            class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200/60 transition shadow-xs"
-                                            title="Marcar como Pago em 1 clique"
+                                            type="button" 
+                                            @click="openEditTx({{ json_encode($bill) }})"
+                                            class="inline-flex items-center justify-center p-1.5 rounded-xl text-xs font-bold text-zinc-500 hover:text-zinc-900 bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 transition shadow-xs"
+                                            title="Editar Despesa"
                                         >
-                                            <x-lucide-check class="w-3.5 h-3.5" />
-                                            <span>Pagar</span>
+                                            <x-lucide-pencil class="w-3.5 h-3.5" />
                                         </button>
-                                    </form>
+                                        <!-- 1-Click Mark as Paid -->
+                                        <form method="POST" action="{{ route('transactions.update-status', $bill) }}" onsubmit="window.haptic('success')">
+                                            @csrf
+                                            @method('PATCH')
+                                            <button 
+                                                type="submit" 
+                                                class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs font-bold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200/60 transition shadow-xs"
+                                                title="Marcar como Pago em 1 clique"
+                                            >
+                                                <x-lucide-check class="w-3.5 h-3.5" />
+                                                <span>Pagar</span>
+                                            </button>
+                                        </form>
+                                    </div>
                                 </div>
                             </div>
                         @endforeach
@@ -433,7 +491,17 @@
                                 <span class="w-3.5 h-3.5 rounded-full shrink-0" style="background-color: {{ $acc->color }}"></span>
                                 <span class="text-xs font-bold text-zinc-800">{{ $acc->name }}</span>
                             </div>
-                            <span class="text-sm font-extrabold text-zinc-900">{{ $acc->formatted_current_balance }}</span>
+                            <div class="flex items-center gap-2">
+                                <span class="text-sm font-extrabold text-zinc-900">{{ $acc->formatted_current_balance }}</span>
+                                <button 
+                                    type="button" 
+                                    @click="openEditAccount({{ json_encode($acc) }})"
+                                    class="p-1.5 rounded-lg text-zinc-400 hover:text-zinc-700 hover:bg-zinc-200/60 transition"
+                                    title="Editar Saldo / Conta"
+                                >
+                                    <x-lucide-pencil class="w-3.5 h-3.5" />
+                                </button>
+                            </div>
                         </div>
                     @empty
                         <p class="text-xs text-zinc-500">Nenhuma conta cadastrada.</p>
@@ -442,4 +510,114 @@
             </div>
         </div>
     </div>
+
+    <!-- Monthly Transactions and Expenses Section with Direct Editing -->
+    <div class="p-6 sm:p-7 bg-white rounded-3xl border border-zinc-200/80 shadow-xs mt-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-5">
+            <div>
+                <h2 class="text-base font-bold text-zinc-900">Despesas e Lançamentos deste Mês</h2>
+                <p class="text-xs text-zinc-500">Edite valores, datas, contas ou alterne o status diretamente aqui</p>
+            </div>
+            <div class="flex items-center gap-2">
+                <a href="{{ route('transactions.index') }}" class="text-xs text-emerald-600 hover:text-emerald-700 font-bold inline-flex items-center gap-1 transition">
+                    <span>Ver no extrato completo</span>
+                    <x-lucide-arrow-right class="w-3.5 h-3.5" />
+                </a>
+            </div>
+        </div>
+
+        @if ($metrics['month_transactions']->count() > 0)
+            <div class="divide-y divide-zinc-100">
+                @foreach ($metrics['month_transactions'] as $tx)
+                    @php
+                        $isExpense = $tx->type === 'expense';
+                        $isPaid = $tx->status === 'paid';
+                        $txDueDate = \Carbon\Carbon::parse($tx->due_date);
+                    @endphp
+                    <div class="py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:bg-zinc-50/60 px-2 rounded-2xl transition">
+                        <div class="flex items-start sm:items-center gap-3 min-w-0">
+                            <div class="w-9 h-9 rounded-2xl {{ $isExpense ? 'bg-rose-50 text-rose-600' : 'bg-emerald-50 text-emerald-600' }} flex items-center justify-center shrink-0 mt-0.5 sm:mt-0">
+                                @if ($isExpense)
+                                    <x-lucide-arrow-down-left class="w-4 h-4" />
+                                @else
+                                    <x-lucide-arrow-up-right class="w-4 h-4" />
+                                @endif
+                            </div>
+                            <div class="min-w-0 flex-1">
+                                <div class="flex items-center gap-2 flex-wrap">
+                                    <span class="text-sm font-bold text-zinc-900 truncate">{{ $tx->description }}</span>
+                                    @if ($tx->isInstallment())
+                                        <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-zinc-100 text-zinc-700">
+                                            {{ $tx->installment_number }}/{{ $tx->total_installments }}
+                                        </span>
+                                    @endif
+                                    <span class="px-2 py-0.5 rounded-full text-[10px] font-bold {{ $isPaid ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800' }}">
+                                        {{ $isPaid ? 'Pago' : 'Pendente' }}
+                                    </span>
+                                </div>
+                                <div class="text-xs text-zinc-500 flex items-center gap-2 mt-0.5 flex-wrap">
+                                    <span class="flex items-center gap-1">
+                                        <x-lucide-calendar class="w-3 h-3 text-zinc-400" />
+                                        {{ $txDueDate->format('d/m/Y') }}
+                                    </span>
+                                    <span>•</span>
+                                    <span class="inline-flex items-center gap-1">
+                                        <span class="w-2 h-2 rounded-full" style="background-color: {{ $tx->category?->color ?? '#64748b' }}"></span>
+                                        {{ $tx->category?->name ?? 'Sem categoria' }}
+                                    </span>
+                                    <span>•</span>
+                                    <span>{{ $tx->account?->name ?? 'Conta' }}</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between sm:justify-end gap-3 shrink-0 pt-2 sm:pt-0 border-t sm:border-t-0 border-zinc-100">
+                            <span class="text-sm font-black {{ $isExpense ? 'text-zinc-900' : 'text-emerald-600' }}">
+                                {{ $isExpense ? '-' : '+' }}{{ $tx->formatted_amount }}
+                            </span>
+                            
+                            <div class="flex items-center gap-1.5">
+                                <!-- Status toggle button -->
+                                <form method="POST" action="{{ route('transactions.update-status', $tx) }}" onsubmit="window.haptic('success')">
+                                    @csrf
+                                    @method('PATCH')
+                                    <button 
+                                        type="submit" 
+                                        class="p-1.5 rounded-xl border transition {{ $isPaid ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80 hover:bg-emerald-100' : 'bg-zinc-100 text-zinc-600 border-zinc-200 hover:bg-emerald-50 hover:text-emerald-700' }}"
+                                        title="{{ $isPaid ? 'Marcar como Pendente' : 'Marcar como Pago' }}"
+                                    >
+                                        <x-lucide-check class="w-4 h-4" />
+                                    </button>
+                                </form>
+
+                                <!-- Edit button -->
+                                <button 
+                                    type="button" 
+                                    @click="openEditTx({{ json_encode($tx) }})"
+                                    class="p-1.5 rounded-xl border border-zinc-200 bg-white text-zinc-600 hover:text-zinc-900 hover:bg-zinc-100 transition shadow-2xs"
+                                    title="Editar Despesa / Transação"
+                                >
+                                    <x-lucide-pencil class="w-4 h-4" />
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        @else
+            <div class="py-10 text-center">
+                <div class="w-10 h-10 mx-auto rounded-full bg-zinc-100 text-zinc-400 flex items-center justify-center mb-2">
+                    <x-lucide-inbox class="w-5 h-5" />
+                </div>
+                <p class="text-sm font-semibold text-zinc-700">Nenhum lançamento neste mês</p>
+                <p class="text-xs text-zinc-400 mt-0.5">Adicione novas despesas no botão "Nova Transação" no topo.</p>
+            </div>
+        @endif
+    </div>
+
+    <!-- Include Modals -->
+    @include('accounts.edit-modal')
+    @include('transactions.edit-modal')
+
+    </div> <!-- Close outer Alpine container -->
 </x-app-layout>

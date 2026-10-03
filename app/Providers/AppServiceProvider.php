@@ -23,5 +23,13 @@ class AppServiceProvider extends ServiceProvider
         if ($this->app->environment('production') || str_starts_with((string) config('app.url'), 'https://') || request()->header('x-forwarded-proto') === 'https') {
             URL::forceScheme('https');
         }
+
+        $appUrl = config('app.url');
+        if (! empty($appUrl) && $appUrl !== 'http://localhost' && $appUrl !== 'http://localhost:8000') {
+            URL::forceRootUrl($appUrl);
+        } elseif ($host = request()->header('host')) {
+            $isHttps = $this->app->environment('production') || request()->header('x-forwarded-proto') === 'https';
+            URL::forceRootUrl(($isHttps ? 'https://' : 'http://').$host);
+        }
     }
 }

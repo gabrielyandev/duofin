@@ -13,11 +13,42 @@
         deleteActionUrl: '',
         
         confirmDelete(id, description, isInstallment, url) {
+            window.haptic('warning');
             this.deleteTxId = id;
             this.deleteTxDescription = description;
             this.deleteTxIsInstallment = isInstallment;
             this.deleteActionUrl = url;
             this.deleteModalOpen = true;
+        },
+
+        editTxModalOpen: false,
+        editTxAction: '',
+        editTxData: {
+            id: null,
+            description: '',
+            amount: '',
+            due_date: '',
+            category_id: '',
+            account_id: '',
+            status: 'pending',
+            type: 'expense',
+            payment_method: 'pix'
+        },
+        openEditTx(tx) {
+            window.haptic('light');
+            this.editTxData = {
+                id: tx.id,
+                description: tx.description,
+                amount: parseFloat(tx.amount).toFixed(2),
+                due_date: (tx.due_date ? String(tx.due_date).substring(0, 10) : ''),
+                category_id: tx.category_id,
+                account_id: tx.account_id,
+                status: tx.status || 'pending',
+                type: tx.type || 'expense',
+                payment_method: tx.payment_method || 'pix'
+            };
+            this.editTxAction = '/transactions/' + tx.id;
+            this.editTxModalOpen = true;
         }
     }">
         <!-- Page Header -->
@@ -226,14 +257,24 @@
                                 </div>
                             </div>
 
-                            <button 
-                                type="button" 
-                                @click="confirmDelete('{{ $tx->id }}', '{{ addslashes($tx->display_description) }}', {{ $tx->isInstallment() ? 'true' : 'false' }}, '{{ route('transactions.destroy', $tx) }}')"
-                                class="p-1.5 text-zinc-400 hover:text-rose-600 transition shrink-0 ml-2"
-                                title="Excluir lançamento"
-                            >
-                                <x-lucide-trash-2 class="w-4 h-4" />
-                            </button>
+                            <div class="flex items-center gap-1 shrink-0 ml-2">
+                                <button 
+                                    type="button" 
+                                    @click="openEditTx({{ json_encode($tx) }})"
+                                    class="p-1.5 text-zinc-400 hover:text-zinc-700 transition"
+                                    title="Editar lançamento"
+                                >
+                                    <x-lucide-pencil class="w-4 h-4" />
+                                </button>
+                                <button 
+                                    type="button" 
+                                    @click="confirmDelete('{{ $tx->id }}', '{{ addslashes($tx->display_description) }}', {{ $tx->isInstallment() ? 'true' : 'false' }}, '{{ route('transactions.destroy', $tx) }}')"
+                                    class="p-1.5 text-zinc-400 hover:text-rose-600 transition"
+                                    title="Excluir lançamento"
+                                >
+                                    <x-lucide-trash-2 class="w-4 h-4" />
+                                </button>
+                            </div>
                         </div>
                     </div>
                 @empty
@@ -338,14 +379,24 @@
 
                                 <!-- Ações -->
                                 <td class="py-4 px-5 whitespace-nowrap text-right">
-                                    <button 
-                                        type="button" 
-                                        @click="confirmDelete('{{ $tx->id }}', '{{ addslashes($tx->display_description) }}', {{ $tx->isInstallment() ? 'true' : 'false' }}, '{{ route('transactions.destroy', $tx) }}')"
-                                        class="p-2 text-zinc-300 hover:text-rose-600 rounded-xl hover:bg-rose-50 transition"
-                                        title="Excluir lançamento"
-                                    >
-                                        <x-lucide-trash-2 class="w-4 h-4" />
-                                    </button>
+                                    <div class="flex items-center justify-end gap-1">
+                                        <button 
+                                            type="button" 
+                                            @click="openEditTx({{ json_encode($tx) }})"
+                                            class="p-2 text-zinc-400 hover:text-zinc-700 rounded-xl hover:bg-zinc-100 transition"
+                                            title="Editar lançamento"
+                                        >
+                                            <x-lucide-pencil class="w-4 h-4" />
+                                        </button>
+                                        <button 
+                                            type="button" 
+                                            @click="confirmDelete('{{ $tx->id }}', '{{ addslashes($tx->display_description) }}', {{ $tx->isInstallment() ? 'true' : 'false' }}, '{{ route('transactions.destroy', $tx) }}')"
+                                            class="p-2 text-zinc-300 hover:text-rose-600 rounded-xl hover:bg-rose-50 transition"
+                                            title="Excluir lançamento"
+                                        >
+                                            <x-lucide-trash-2 class="w-4 h-4" />
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         @empty
@@ -462,5 +513,8 @@
                 </div>
             </div>
         </div>
+
+        <!-- Edit Modal -->
+        @include('transactions.edit-modal')
     </div>
 </x-app-layout>

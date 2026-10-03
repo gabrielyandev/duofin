@@ -86,6 +86,43 @@ class TransactionController extends Controller
     }
 
     /**
+     * Update the specified transaction in storage.
+     */
+    public function update(Request $request, Transaction $transaction): RedirectResponse
+    {
+        if ($transaction->workspace_id !== $request->user()->current_workspace_id) {
+            abort(403);
+        }
+
+        $validated = $request->validate([
+            'description' => ['required', 'string', 'max:255'],
+            'amount' => ['required', 'numeric', 'min:0.01'],
+            'due_date' => ['required', 'date'],
+            'category_id' => ['required', 'exists:categories,id'],
+            'account_id' => ['required', 'exists:accounts,id'],
+            'status' => ['required', 'in:paid,pending'],
+            'type' => ['nullable', 'in:expense,income'],
+            'payment_method' => ['nullable', 'string', 'max:50'],
+        ]);
+
+        $paidAt = $validated['status'] === 'paid' ? ($transaction->paid_at ?? now()->toDateString()) : null;
+
+        $transaction->update([
+            'description' => $validated['description'],
+            'amount' => (float) $validated['amount'],
+            'due_date' => $validated['due_date'],
+            'category_id' => $validated['category_id'],
+            'account_id' => $validated['account_id'],
+            'status' => $validated['status'],
+            'paid_at' => $paidAt,
+            'type' => $validated['type'] ?? $transaction->type,
+            'payment_method' => $validated['payment_method'] ?? $transaction->payment_method,
+        ]);
+
+        return redirect()->back()->with('success', 'Transação atualizada com sucesso.');
+    }
+
+    /**
      * Toggle the status between 'paid' and 'pending'.
      */
     public function updateStatus(Request $request, Transaction $transaction): RedirectResponse
