@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "br.com.gabrielyandev.duofin.twa",
+      "sha256_cert_fingerprints": [
+        "27:A7:86:C5:66:BF:D4:83:1E:78:82:C9:88:60:71:CB:DB:5D:C0:9E:29:9D:8C:AB:68:47:04:36:92:37:68:E3"
+      ]
+    }
+  }
+]
