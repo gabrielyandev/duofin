@@ -253,6 +253,8 @@
                 <div class="flex items-center gap-4">
                     <span>&copy; {{ date('Y') }} DuoFin</span>
                     <span>&bull;</span>
+                    <a href="{{ route('privacy') }}" class="text-zinc-400 hover:text-emerald-400 transition">Privacidade</a>
+                    <span>&bull;</span>
                     <span>Desenvolvido por <a href="https://gabrielyandev.com.br" target="_blank" rel="noopener noreferrer" class="font-bold text-zinc-300 hover:text-emerald-400 transition underline underline-offset-2">gabrielyandev</a></span>
                 </div>
             </div>

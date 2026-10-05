@@ -38,8 +38,10 @@
             <div class="bg-zinc-900/90 backdrop-blur border border-zinc-800 py-8 px-6 shadow-2xl rounded-2xl sm:px-10">
                 {{ $slot }}
             </div>
-            <div class="mt-6 text-center text-xs text-zinc-500">
-                Desenvolvido por <a href="https://gabrielyandev.com.br" target="_blank" rel="noopener noreferrer" class="text-emerald-400 hover:text-emerald-300 font-bold transition">gabrielyandev</a>
+            <div class="mt-6 text-center text-xs text-zinc-500 space-x-2">
+                <span>Desenvolvido por <a href="https://gabrielyandev.com.br" target="_blank" rel="noopener noreferrer" class="text-emerald-400 hover:text-emerald-300 font-bold transition">gabrielyandev</a></span>
+                <span>&bull;</span>
+                <a href="{{ route('privacy') }}" class="text-zinc-400 hover:text-zinc-300 underline underline-offset-2 transition">Privacidade</a>
             </div>
         </div>
 

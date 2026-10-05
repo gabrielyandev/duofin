@@ -16,6 +16,9 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::view('/privacy', 'privacy')->name('privacy');
+Route::view('/politica-de-privacidade', 'privacy');
+
 Route::middleware(['auth', 'verified'])->group(function () {
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
