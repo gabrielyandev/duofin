@@ -18,6 +18,8 @@ Route::get('/', function () {
 
 Route::view('/privacy', 'privacy')->name('privacy');
 Route::view('/politica-de-privacidade', 'privacy');
+Route::view('/delete-account', 'delete-account')->name('delete-account');
+Route::view('/exclusao-de-conta', 'delete-account');
 
 Route::middleware(['auth', 'verified'])->group(function () {
     // Dashboard

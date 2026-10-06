@@ -28,4 +28,16 @@ class PrivacyPolicyTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee('Política de Privacidade');
     }
+
+    /**
+     * Test that the delete account policy page is publicly accessible.
+     */
+    public function test_delete_account_page_is_accessible(): void
+    {
+        $response = $this->get('/delete-account');
+
+        $response->assertStatus(200);
+        $response->assertSee('Solicitação de Exclusão de Conta e Dados');
+        $response->assertSee('DuoFin');
+    }
 }
